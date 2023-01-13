@@ -29,6 +29,7 @@ import com.flydog.connectanya.databinding.ActivityMainBinding
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.ui.setting.SettingActivity
+import com.flydog.connectanya.utils.IdUtils
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
-    private var deviceID: String = ""
+    private lateinit var deviceID: String
     private var userName: String = ""
 
     private var currentClipboardData: String = ""
@@ -94,6 +95,8 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        this.deviceID = IdUtils.getId(this)
+
         // 检查登陆信息
         if (loadIdName()) {
             this.showLoginDialog()
@@ -106,7 +109,12 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.setClipboardData(currentClipboardData)
 
-        val a = PreferenceManager.getDefaultSharedPreferences(this).getString("host", "-1")
+        val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
+        with (sharePreferenceManager.edit()) {
+            putString("host", "192.168.3.113:8686")
+            apply()
+        }
+        val a = sharePreferenceManager.getString("host", "-1")
         Toast.makeText(this, a, Toast.LENGTH_SHORT).show()
     }
 
@@ -137,14 +145,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateSideUserShow(user: String, id: String) {
+    private fun updateSideUserShow(user: String) {
         if (binding.navView.headerCount > 0) {
             val header = binding.navView.getHeaderView(0)
 
             val showUserName = header.findViewById<TextView>(R.id.sideUserName)
             showUserName.text = user
             val showDeviceId = header.findViewById<TextView>(R.id.sideDeviceName)
-            showDeviceId.text = id
+            showDeviceId.text = this.deviceID
         }
     }
 
@@ -160,23 +168,21 @@ class MainActivity : AppCompatActivity() {
         val id = setting.getString("deviceId", "-1").toString()
         val name = setting.getString("userName", "-1").toString()
 
-        updateSideUserShow(name, id)
+        updateSideUserShow(name)
 
         this.deviceID = id
         this.userName = name
         return id == "-1" && name == "-1"
     }
 
-    private fun updateIdName(name: String, id: String) {
-        this.deviceID = id
+    private fun updateIdName(name: String) {
         this.userName = name
         val settings = getSharedPreferences("settings", 0)
         val editor = settings.edit()
-        editor.putString("deviceId", this.deviceID)
         editor.putString("userName", this.userName)
         editor.apply()
 
-        updateSideUserShow(name, id)
+        updateSideUserShow(name)
     }
 
     private fun showLoginDialog() {
@@ -186,22 +192,20 @@ class MainActivity : AppCompatActivity() {
             .setTitle("登陆")
             .setView(view)
             .setPositiveButton("登陆") { _, _ ->
-                val editTextDeviceId = view.findViewById<EditText>(R.id.deviceID)
                 val editTextUserName = view.findViewById<EditText>(R.id.userName)
 
-                val id = editTextDeviceId.text.toString().trim()
                 val name = editTextUserName.text.toString().trim()
 
-                if (id == "" || name == "") {
+                if (name == "") {
                     Toast.makeText(this, "请输入设备id和用户名, 重新登陆", Toast.LENGTH_SHORT).show()
                 } else {
                     if (isSaveName()) {
-                        updateIdName(name, id)
+                        updateIdName(name)
                         startForegroundService(Intent(this, ConnectService::class.java))
                         //Bind connectService
                         bindService(Intent(this, ConnectService::class.java), conn, Context.BIND_AUTO_CREATE)
                     }
-                    updateIdName(name, id)
+                    updateIdName(name)
                     Toast.makeText(this, "提交完成", Toast.LENGTH_SHORT).show()
                 }
             }
