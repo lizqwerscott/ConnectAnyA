@@ -10,6 +10,7 @@ import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MenuItem
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -23,12 +24,11 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import com.flydog.connectanya.databinding.ActivityMainBinding
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
-import com.flydog.connectanya.utils.ClipboardUtil
-import java.util.*
-import kotlin.concurrent.schedule
+import com.flydog.connectanya.ui.setting.SettingActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -105,6 +105,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewModel.setClipboardData(currentClipboardData)
+
+        val a = PreferenceManager.getDefaultSharedPreferences(this).getString("host", "-1")
+        Toast.makeText(this, a, Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
@@ -121,6 +124,17 @@ class MainActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_settings -> {
+            startActivity(Intent(this, SettingActivity::class.java))
+            true
+        }
+
+        else -> {
+            super.onOptionsItemSelected(item)
+        }
     }
 
     private fun updateSideUserShow(user: String, id: String) {
