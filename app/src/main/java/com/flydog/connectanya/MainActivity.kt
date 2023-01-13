@@ -13,6 +13,7 @@ import android.view.Menu
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -24,14 +25,20 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.flydog.connectanya.databinding.ActivityMainBinding
 import com.flydog.connectanya.services.ConnectService
+import com.flydog.connectanya.ui.MainViewModel
+import com.flydog.connectanya.utils.ClipboardUtil
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
+    private val viewModel: MainViewModel by viewModels()
+
     private var deviceID: String = ""
     private var userName: String = ""
+
+    private var currentClipboardData: String = ""
 
     private var connectService: ConnectService? = null
     private var isBind = false
@@ -40,6 +47,14 @@ class MainActivity : AppCompatActivity() {
             isBind = true
             val myBinder = p1 as ConnectService.MsgBinder
             connectService = myBinder.getService()
+            connectService!!.onClipboardDataUpdateListener = object : ConnectService.OnClipboardUpdateListener {
+                override fun onClipboardUpdate(data: String) {
+                    runOnUiThread {
+                        viewModel.setClipboardData(data)
+                    }
+                    currentClipboardData = data
+                }
+            }
             Log.w("connectService", "bind service")
         }
 
@@ -75,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        // 检查登陆信息
         if (loadIdName()) {
             this.showLoginDialog()
         } else {
@@ -83,6 +99,13 @@ class MainActivity : AppCompatActivity() {
             //Bind connectService
             bindService(Intent(this, ConnectService::class.java), conn, Context.BIND_AUTO_CREATE)
         }
+
+        viewModel.setClipboardData(currentClipboardData)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.setClipboardData(currentClipboardData)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

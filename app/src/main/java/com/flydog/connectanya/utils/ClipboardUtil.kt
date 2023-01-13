@@ -1,9 +1,13 @@
 package com.flydog.connectanya.utils
 
+import android.content.ClipboardManager
+import android.content.Context
+import android.text.TextUtils
 import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.regex.Pattern
+
 
 object ClipboardUtil {
 
@@ -24,7 +28,7 @@ object ClipboardUtil {
             val bufferedReader =
                 BufferedReader(InputStreamReader(process.inputStream)) //将捕获内容转换为BufferedReader
 
-            var str: String
+            var str: String = ""
             var isMultiLine = false
             while (bufferedReader.readLine().also { str = it } != null) //开始读取日志，每次读取一行
             {
@@ -73,7 +77,8 @@ object ClipboardUtil {
             val pattern = Pattern.compile("\\{([^}]*)\\}")
             val matcher = pattern.matcher(texts[0])
             if (matcher.find()) {
-                val key_values = matcher.group().substring(1, matcher.group().length - 1).split(", ")
+                val key_values =
+                    matcher.group().substring(1, matcher.group().length - 1).split(", ")
                 for (key_value in key_values) {
                     val key_temp = key_value.split("=")
                     if (key_temp[0] == "text") {
@@ -99,5 +104,4 @@ object ClipboardUtil {
     fun getClipboardText(): String {
         return handleLog(removeLogHeader(getLog("notifyEvent:EVENT_CLIPBOARD")))
     }
-
 }
