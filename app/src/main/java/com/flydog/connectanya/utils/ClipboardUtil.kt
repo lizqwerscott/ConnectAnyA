@@ -104,4 +104,13 @@ object ClipboardUtil {
     fun getClipboardText(): String {
         return handleLog(removeLogHeader(getLog("notifyEvent:EVENT_CLIPBOARD")))
     }
+
+    fun getClipboardTextFront(context: Context): String {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        if (clipboard.hasPrimaryClip() && clipboard.primaryClip!!.itemCount > 0) {
+            return clipboard.primaryClip?.getItemAt(0)?.text.toString()
+        }
+        return ""
+    }
+
 }

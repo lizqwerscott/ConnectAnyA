@@ -27,6 +27,8 @@ import com.flydog.connectanya.databinding.ActivityMainBinding
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.utils.ClipboardUtil
+import java.util.*
+import kotlin.concurrent.schedule
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,10 +51,12 @@ class MainActivity : AppCompatActivity() {
             connectService = myBinder.getService()
             connectService!!.onClipboardDataUpdateListener = object : ConnectService.OnClipboardUpdateListener {
                 override fun onClipboardUpdate(data: String) {
-                    runOnUiThread {
-                        viewModel.setClipboardData(data)
+                    if (data != "") {
+                        runOnUiThread {
+                            viewModel.setClipboardData(data)
+                        }
+                        currentClipboardData = data
                     }
-                    currentClipboardData = data
                 }
             }
             Log.w("connectService", "bind service")

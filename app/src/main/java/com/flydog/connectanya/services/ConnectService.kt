@@ -13,6 +13,7 @@ import com.flydog.connectanya.MainActivity
 import com.flydog.connectanya.R
 import com.flydog.connectanya.utils.ClipboardUtil
 import java.util.*
+import kotlin.concurrent.schedule
 
 class ConnectService : Service() {
 
@@ -54,6 +55,10 @@ class ConnectService : Service() {
 
         val task = ServerConnectTask()
         Timer().schedule(task, 1000, 1000)
+
+        Timer().schedule(1000) {
+            clipboardTextData = ClipboardUtil.getClipboardTextFront(this@ConnectService)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
