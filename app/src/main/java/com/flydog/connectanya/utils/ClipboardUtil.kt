@@ -2,7 +2,6 @@ package com.flydog.connectanya.utils
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.text.TextUtils
 import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -28,12 +27,12 @@ object ClipboardUtil {
             val bufferedReader =
                 BufferedReader(InputStreamReader(process.inputStream)) //将捕获内容转换为BufferedReader
 
-            var str: String = ""
+            var str: String
             var isMultiLine = false
             while (bufferedReader.readLine().also { str = it } != null) //开始读取日志，每次读取一行
             {
                 Runtime.getRuntime()
-                    .exec(clearLog.toTypedArray()) //清理日志....这里至关重要，不清理的话，任何操作都将产生新的日志，代码进入死循环，直到bufferreader满
+                    .exec(clearLog.toTypedArray()) //清理日志....这里至关重要，不清理的话，任何操作都将产生新的日志，代码进入死循环，直到bufferReader满
                 Log.i("Log", "add log: $str")
                 str.let {
                     if (isMultiLine) {
@@ -77,12 +76,12 @@ object ClipboardUtil {
             val pattern = Pattern.compile("\\{([^}]*)\\}")
             val matcher = pattern.matcher(texts[0])
             if (matcher.find()) {
-                val key_values =
+                val keyValues =
                     matcher.group().substring(1, matcher.group().length - 1).split(", ")
-                for (key_value in key_values) {
-                    val key_temp = key_value.split("=")
-                    if (key_temp[0] == "text") {
-                        res = key_temp[1].substring(1, key_temp[1].length - 1)
+                for (key_value in keyValues) {
+                    val tempKey = key_value.split("=")
+                    if (tempKey[0] == "text") {
+                        res = tempKey[1].substring(1, tempKey[1].length - 1)
                         break
                     }
                 }

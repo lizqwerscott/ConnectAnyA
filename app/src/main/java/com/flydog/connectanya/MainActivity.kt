@@ -187,8 +187,7 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "用户名不能为空", Toast.LENGTH_SHORT).show()
                 } else {
                     GlobalScope.launch(Dispatchers.IO) {
-                        val res = viewModel.login(getHostAddress(), name)
-                        when (res) {
+                        when (val res = viewModel.login(getHostAddress(), name)) {
                             is LoginResult.Success<RegisterModel> -> {
                                 if (res.data.code == 200) {
                                     viewModel.updateUserName(name)

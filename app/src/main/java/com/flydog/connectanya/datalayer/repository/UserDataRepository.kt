@@ -6,8 +6,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import com.flydog.connectanya.App
 import com.flydog.connectanya.datalayer.data.SettingDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

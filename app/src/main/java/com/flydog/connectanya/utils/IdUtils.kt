@@ -6,7 +6,7 @@ import java.util.UUID
 
 object IdUtils {
 
-    fun generateId(context: Context): String {
+    private fun generateId(context: Context): String {
         val uuid = UUID.randomUUID().toString()
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         with (sharedPreferences.edit()) {

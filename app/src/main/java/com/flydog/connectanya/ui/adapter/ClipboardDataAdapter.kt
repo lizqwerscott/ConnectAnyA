@@ -2,11 +2,9 @@ package com.flydog.connectanya.ui.adapter
 
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.flydog.connectanya.R
 
-class ClipboardDataAdapter(private val clipboardDatas: List<String>) : RecyclerView.Adapter<ClipboardDataAdapter.ViewHolder>() {
+class ClipboardDataAdapter(private val clipboardDataList: List<String>) : RecyclerView.Adapter<ClipboardDataAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 //        val handleDate: TextView
@@ -23,5 +21,5 @@ class ClipboardDataAdapter(private val clipboardDatas: List<String>) : RecyclerV
         TODO("Not yet implemented")
     }
 
-    override fun getItemCount() = clipboardDatas.size
+    override fun getItemCount() = clipboardDataList.size
 }
