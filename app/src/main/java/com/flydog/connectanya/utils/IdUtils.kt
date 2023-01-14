@@ -18,10 +18,10 @@ object IdUtils {
 
     fun getId(context: Context): String {
         val id = PreferenceManager.getDefaultSharedPreferences(context).getString("uuid", "-1")
-        return if (id == "-1") {
+        return if (id == "-1" || id == null) {
             generateId(context)
         } else {
-            id ?: ""
+            id
         }
     }
 }

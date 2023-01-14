@@ -5,12 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
-import com.flydog.connectanya.MainActivity
-import com.flydog.connectanya.R
 import com.flydog.connectanya.databinding.FragmentHomeBinding
 import com.flydog.connectanya.ui.MainViewModel
 
@@ -46,7 +43,7 @@ class HomeFragment : Fragment() {
         }
         val clipboardNowDate = binding.clipboardNowData.clipboardDate
         clipboardNowDate.text = "当前剪切板"
-        clipboardNowDate.setTextColor(resources.getColor(R.color.red))
+        clipboardNowDate.setTextColor(Color.RED)
         return root
     }
 
