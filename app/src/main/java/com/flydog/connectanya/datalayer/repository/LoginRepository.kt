@@ -3,7 +3,7 @@ package com.flydog.connectanya.datalayer.repository
 import android.util.Log
 import com.eclipsesource.json.Json
 import com.eclipsesource.json.JsonObject
-import com.flydog.connectanya.datalayer.model.RegisterModel
+import com.flydog.connectanya.datalayer.model.ReturnBoolDataModel
 import com.flydog.connectanya.utils.HttpUtils
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ sealed class LoginResult<out R> {
 
 class LoginRepository {
 
-    suspend fun makeRegisterUserRequest(ip: String, username: String, deviceId: String): LoginResult<RegisterModel> {
+    suspend fun makeRegisterUserRequest(ip: String, username: String, deviceId: String): LoginResult<ReturnBoolDataModel> {
         return withContext(Dispatchers.IO) {
             val url = "https://$ip/user/adduser"
 
@@ -40,7 +40,7 @@ class LoginRepository {
                 LoginResult.Error(Exception("Internal Server Error or result is null"))
             } else {
                 val gson = Gson()
-                LoginResult.Success(gson.fromJson(str, RegisterModel::class.java))
+                LoginResult.Success(gson.fromJson(str, ReturnBoolDataModel::class.java))
             }
         }
     }

@@ -5,7 +5,7 @@ import com.flydog.connectanya.datalayer.repository.UserDataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.lifecycle.liveData
-import com.flydog.connectanya.datalayer.model.RegisterModel
+import com.flydog.connectanya.datalayer.model.ReturnBoolDataModel
 import com.flydog.connectanya.datalayer.repository.LoginRepository
 import com.flydog.connectanya.datalayer.repository.LoginResult
 import java.lang.Exception
@@ -35,7 +35,7 @@ class MainViewModel(
         currentClipboardData.value = item
     }
 
-    suspend fun login(ip: String, username: String): LoginResult<RegisterModel> {
+    suspend fun login(ip: String, username: String): LoginResult<ReturnBoolDataModel> {
         userDataUiModel.value?.deviceId?.let {
             return loginRepository.makeRegisterUserRequest(ip, username, it)
         }

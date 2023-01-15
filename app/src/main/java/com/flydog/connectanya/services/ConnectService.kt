@@ -9,9 +9,13 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.preference.PreferenceManager
 import com.flydog.connectanya.MainActivity
 import com.flydog.connectanya.R
+import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
+import com.flydog.connectanya.utils.HttpUtils
+import kotlinx.coroutines.*
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -24,7 +28,11 @@ class ConnectService : Service() {
     private val notificationChannelId = "connectService_id_02"
     private val notificationClipboardChannelId = "connectService_id_03"
 
+    private var userData: UserData = UserData("", "")
+
     private var clipboardTextData = ""
+
+    private var job = MainScope()
 
     override fun onCreate() {
         super.onCreate()
@@ -58,6 +66,7 @@ class ConnectService : Service() {
 
         Timer().schedule(1000) {
             clipboardTextData = ClipboardUtil.getClipboardTextFront(this@ConnectService)
+            onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
         }
     }
 
@@ -73,15 +82,16 @@ class ConnectService : Service() {
 
     override fun onDestroy() {
         stopForeground(true)
+        job.cancel()
         Log.w("Info", "ConnectService destroy")
     }
 
     private fun createForegroundNotification(): Notification {
 
-//        val norifyIntent = Intent(this, SelectDeviceActivity::class.java).apply {
+//        val notifyIntent = Intent(this, SelectDeviceActivity::class.java).apply {
 //            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 //        }
-//        val notifyPendingIntent = PendingIntent.getActivity(this, 0, norifyIntent, PendingIntent.FLAG_IMMUTABLE)
+//        val notifyPendingIntent = PendingIntent.getActivity(this, 0, notifyIntent, PendingIntent.FLAG_IMMUTABLE)
 
         val intent = Intent(this, MainActivity::class.java)
         val notifyPendingIntent =
@@ -121,6 +131,20 @@ class ConnectService : Service() {
         return builder.build()
     }
 
+    fun updateUserData(userData: UserData) {
+        this.userData = userData
+    }
+
+    fun getHostAddress(): String {
+        val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
+        val address = sharePreferenceManager.getString("host", "-1")
+        return if (address == "-1" || address == null) {
+            "192.168.3.113:8686"
+        } else {
+            address
+        }
+    }
+
     inner class MsgBinder : Binder() {
         fun getService(): ConnectService {
             return this@ConnectService
@@ -139,15 +163,28 @@ class ConnectService : Service() {
                 with(NotificationManagerCompat.from(this@ConnectService)) {
                     notify(id, notification)
                 }
+
+                // 同步UI
+                onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
+
+                job.launch(Dispatchers.Default) {
+                    // 发送新复制的信息给服务器
+                    withContext(Dispatchers.IO) {
+                        HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
+                    }
+                }
             }
-            // 同步UI
-            onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
+
             // 和服务器同步
-            Log.i("ConnectService", clipboardTextData)
+            Log.i(TAG, clipboardTextData)
         }
     }
 
     interface OnClipboardUpdateListener {
         fun onClipboardUpdate(data: String)
+    }
+
+    companion object {
+        private const val TAG = "ConnectService"
     }
 }

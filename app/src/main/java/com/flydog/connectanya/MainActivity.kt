@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -29,16 +30,14 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.flydog.connectanya.databinding.ActivityMainBinding
-import com.flydog.connectanya.datalayer.model.RegisterModel
+import com.flydog.connectanya.datalayer.model.ReturnBoolDataModel
 import com.flydog.connectanya.datalayer.repository.LoginResult
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.ui.setting.SettingActivity
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -112,11 +111,15 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.initialSetupEvent.observe(this) { initialSetupEvent ->
 
+            connectService?.updateUserData(initialSetupEvent)
+
             if (initialSetupEvent.username == "") {
                 this.showLoginDialog()
             }
 
             viewModel.userDataUiModel.observe(this) { userDataUiModel ->
+
+                connectService?.updateUserData(userDataUiModel)
 
                 if (binding.navView.headerCount > 0) {
                     val header = binding.navView.getHeaderView(0)
@@ -141,6 +144,10 @@ class MainActivity : AppCompatActivity() {
         startForegroundService(Intent(this, ConnectService::class.java))
         //Bind connectService
         bindService(Intent(this, ConnectService::class.java), conn, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -186,9 +193,9 @@ class MainActivity : AppCompatActivity() {
                 if (name == "") {
                     Toast.makeText(this, "用户名不能为空", Toast.LENGTH_SHORT).show()
                 } else {
-                    GlobalScope.launch(Dispatchers.IO) {
+                    lifecycleScope.launch {
                         when (val res = viewModel.login(getHostAddress(), name)) {
-                            is LoginResult.Success<RegisterModel> -> {
+                            is LoginResult.Success<ReturnBoolDataModel> -> {
                                 if (res.data.code == 200) {
                                     viewModel.updateUserName(name)
                                     runOnUiThread {
