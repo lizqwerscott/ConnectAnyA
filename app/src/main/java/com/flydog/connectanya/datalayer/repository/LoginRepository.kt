@@ -3,6 +3,7 @@ package com.flydog.connectanya.datalayer.repository
 import android.util.Log
 import com.eclipsesource.json.Json
 import com.eclipsesource.json.JsonObject
+import com.flydog.connectanya.datalayer.model.Device
 import com.flydog.connectanya.datalayer.model.ReturnBoolDataModel
 import com.flydog.connectanya.utils.HttpUtils
 import com.google.gson.Gson
@@ -21,9 +22,7 @@ class LoginRepository {
         return withContext(Dispatchers.IO) {
             val url = "https://$ip/user/adduser"
 
-            val deviceObject = Json.`object`()
-            deviceObject.add("id", deviceId)
-            deviceObject.add("type", "Android")
+            val deviceObject = Device.generateFastObject(deviceId)
 
             val data: JsonObject = Json.`object`().add("device", deviceObject).add("name", username)
 

@@ -10,6 +10,15 @@
         android:layout_height="match_parent">
 
         <TextView
+            android:id="@+id/clipboardDeviceInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Meizu 17 pro (Android)"
+            android:textAlignment="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+
+        <TextView
             android:id="@+id/clipboardDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

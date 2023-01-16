@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Binder
+import android.os.Handler
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -16,6 +17,7 @@ import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
 import com.flydog.connectanya.utils.HttpUtils
 import kotlinx.coroutines.*
+import java.sql.Time
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -30,7 +32,10 @@ class ConnectService : Service() {
 
     private var userData: UserData = UserData("", "")
 
+    private var lastClipboardData = ""
     private var clipboardTextData = ""
+
+    private var returnClipboardDataTimer: Timer? = null
 
     private var job = MainScope()
 
@@ -157,7 +162,12 @@ class ConnectService : Service() {
             // 获取本地剪切板
             val tempClipboard = ClipboardUtil.getClipboardText()
             if (tempClipboard != "" && tempClipboard != clipboardTextData) {
+                lastClipboardData = clipboardTextData
                 clipboardTextData = tempClipboard
+
+                if (returnClipboardDataTimer != null) {
+                    returnClipboardDataTimer?.cancel()
+                }
 
                 val notification = createClipboardNotification()
                 with(NotificationManagerCompat.from(this@ConnectService)) {
@@ -177,6 +187,28 @@ class ConnectService : Service() {
 
             // 和服务器同步
             Log.i(TAG, clipboardTextData)
+
+            job.launch(Dispatchers.Default) {
+                // 从服务器获取新的剪切板信息
+                withContext(Dispatchers.IO) {
+//                    HttpUtils.updateMessage(getHostAddress(), userData.deviceId)
+                    val clipboard = HttpUtils.updateBaseMessage(getHostAddress(), userData.deviceId)
+                    if (clipboard != null) {
+                        lastClipboardData = clipboardTextData
+                        clipboardTextData = clipboard.data
+                        onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
+
+                        if (returnClipboardDataTimer != null) {
+                            returnClipboardDataTimer?.cancel()
+                        }
+                        returnClipboardDataTimer = Timer()
+                        returnClipboardDataTimer?.schedule(6 * 1000) {
+                            clipboardTextData = lastClipboardData
+                            returnClipboardDataTimer = null
+                        }
+                    }
+                }
+            }
         }
     }
 
