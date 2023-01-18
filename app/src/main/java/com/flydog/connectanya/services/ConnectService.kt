@@ -1,9 +1,12 @@
 package com.flydog.connectanya.services
 
 import android.app.*
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.nfc.Tag
 import android.os.Binder
 import android.os.Handler
 import android.os.IBinder
@@ -150,6 +153,12 @@ class ConnectService : Service() {
         }
     }
 
+    fun updateClipboard(data: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("recive text", data)
+        clipboard.setPrimaryClip(clip)
+    }
+
     inner class MsgBinder : Binder() {
         fun getService(): ConnectService {
             return this@ConnectService
@@ -188,23 +197,27 @@ class ConnectService : Service() {
             // 和服务器同步
             Log.i(TAG, clipboardTextData)
 
-            job.launch(Dispatchers.Default) {
-                // 从服务器获取新的剪切板信息
-                withContext(Dispatchers.IO) {
+            if (userData.username != "") {
+                job.launch(Dispatchers.Default) {
+                    // 从服务器获取新的剪切板信息
+                    withContext(Dispatchers.IO) {
 //                    HttpUtils.updateMessage(getHostAddress(), userData.deviceId)
-                    val clipboard = HttpUtils.updateBaseMessage(getHostAddress(), userData.deviceId)
-                    if (clipboard != null) {
-                        lastClipboardData = clipboardTextData
-                        clipboardTextData = clipboard.data
-                        onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
+                        val clipboard = HttpUtils.updateBaseMessage(getHostAddress(), userData.deviceId)
+                        if (clipboard != null && clipboard.type == "text") {
+                            lastClipboardData = clipboardTextData
+                            clipboardTextData = clipboard.data
+                            updateClipboard(clipboardTextData)
+                            onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
 
-                        if (returnClipboardDataTimer != null) {
-                            returnClipboardDataTimer?.cancel()
-                        }
-                        returnClipboardDataTimer = Timer()
-                        returnClipboardDataTimer?.schedule(6 * 1000) {
-                            clipboardTextData = lastClipboardData
-                            returnClipboardDataTimer = null
+                            if (returnClipboardDataTimer != null) {
+                                returnClipboardDataTimer?.cancel()
+                            }
+                            returnClipboardDataTimer = Timer()
+                            returnClipboardDataTimer?.schedule(6 * 1000) {
+                                clipboardTextData = lastClipboardData
+                                updateClipboard(clipboardTextData)
+                                returnClipboardDataTimer = null
+                            }
                         }
                     }
                 }

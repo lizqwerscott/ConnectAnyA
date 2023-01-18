@@ -47,13 +47,19 @@ class UserDataRepository(private val dataStore: DataStore<Preferences> = Setting
         }
     }
 
+    suspend fun updateDeviceId() {
+        val uuid = UUID.randomUUID().toString()
+        dataStore.edit { data ->
+            data[PreferencesKeys.DEVICE_ID] = uuid
+        }
+    }
+
     suspend fun fetchInitialData() = mapUserData(dataStore.data.first().toPreferences())
 
     private fun mapUserData(preferences: Preferences): UserData {
         val username = preferences[PreferencesKeys.USER_NAME] ?: ""
 
-        val uuid = UUID.randomUUID().toString()
-        val deviceId = preferences[PreferencesKeys.DEVICE_ID] ?: uuid
+        val deviceId = preferences[PreferencesKeys.DEVICE_ID] ?: ""
         return UserData(username, deviceId)
     }
 }

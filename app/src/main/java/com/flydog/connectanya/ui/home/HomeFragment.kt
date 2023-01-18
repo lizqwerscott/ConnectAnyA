@@ -44,6 +44,8 @@ class HomeFragment : Fragment() {
         val clipboardNowDate = binding.clipboardNowData.clipboardDate
         clipboardNowDate.text = "当前剪切板"
         clipboardNowDate.setTextColor(Color.RED)
+//        val clipboardInfo = binding.clipboardNowData.clipboardDeviceInfo
+//        clipboardInfo.text =
         return root
     }
 

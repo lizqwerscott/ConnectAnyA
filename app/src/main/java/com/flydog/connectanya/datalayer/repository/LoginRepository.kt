@@ -20,7 +20,7 @@ class LoginRepository {
 
     suspend fun makeRegisterUserRequest(ip: String, username: String, deviceId: String): LoginResult<ReturnBoolDataModel> {
         return withContext(Dispatchers.IO) {
-            val url = "https://$ip/user/adduser"
+            val url = "http://$ip/user/adduser"
 
             val deviceObject = Device.generateFastObject(deviceId)
 

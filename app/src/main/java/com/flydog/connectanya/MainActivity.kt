@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+            viewModel.userDataUiModel.value?.let { connectService?.updateUserData(it) }
             Log.w("connectService", "bind service")
         }
 
@@ -88,8 +89,9 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.appBarMain.toolbar)
 
         binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+//            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show()
+            this.showLoginDialog()
         }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -111,7 +113,9 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.initialSetupEvent.observe(this) { initialSetupEvent ->
 
-            connectService?.updateUserData(initialSetupEvent)
+            if (initialSetupEvent.deviceId == "") {
+                viewModel.updateDeviceId()
+            }
 
             if (initialSetupEvent.username == "") {
                 this.showLoginDialog()
@@ -134,7 +138,7 @@ class MainActivity : AppCompatActivity() {
 
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
         with(sharePreferenceManager.edit()) {
-            putString("host", "mock.apifox.cn/m1/2074769-0-default")
+            putString("host", "192.168.3.113:8686")
             apply()
         }
 

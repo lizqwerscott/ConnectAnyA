@@ -18,6 +18,10 @@ object HttpUtils {
     private const val TAG = "HttpUtils"
     private val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
 
+    fun isError(str: String): Boolean {
+        return str == "" || str == "Internal Server Error" || str.contains("error") || str.contains("ERROR") || str.contains("Error")
+    }
+
     fun httpGet(url: String, timeout: Long = 1000): String? {
         val client = OkHttpClient.Builder()
             .connectTimeout(timeout, TimeUnit.MILLISECONDS)
@@ -41,7 +45,9 @@ object HttpUtils {
     }
 
     suspend fun addMessage(ip: String, message: String, deviceId: String): Boolean {
-        val url = "https://$ip/message/addmessage"
+        val url = "http://$ip/message/addmessage"
+
+        Log.i(TAG, "message: $message, deviceId: $deviceId")
 
         val deviceObject = Device.generateFastObject(deviceId)
 
@@ -58,7 +64,7 @@ object HttpUtils {
         }
 
         Log.i(TAG, "ip: $url, result:$str")
-        return if (str == "" || str == "Internal Server Error") {
+        return if (isError(str)) {
             Log.e(TAG, "Internal Server Error or result is null")
             false
         } else {
@@ -75,7 +81,7 @@ object HttpUtils {
     }
 
     suspend fun updateMessage(ip: String, deviceId: String): List<ReturnClipboardData>? {
-        val url = "https://$ip/message/update"
+        val url = "http://$ip/message/update"
 
         val deviceObject = Device.generateFastObject(deviceId)
 
@@ -90,7 +96,7 @@ object HttpUtils {
         }
 
         Log.i(TAG, "ip: $url, result:$str")
-        return if (str == "" || str == "Internal Server Error") {
+        return if (isError(str)) {
             Log.e(TAG, "Internal Server Error or result is null")
             null
         } else {
@@ -107,7 +113,7 @@ object HttpUtils {
     }
 
     suspend fun updateBaseMessage(ip: String, deviceId: String): Clipboard? {
-        val url = "https://$ip/message/updatebase"
+        val url = "http://$ip/message/updatebase"
 
         val deviceObject = Device.generateFastObject(deviceId)
 
@@ -122,7 +128,7 @@ object HttpUtils {
         }
 
         Log.i(TAG, "ip: $url, result:$str")
-        return if (str == "" || str == "Internal Server Error") {
+        return if (isError(str)) {
             Log.e(TAG, "Internal Server Error or result is null")
             null
         } else {
