@@ -18,8 +18,27 @@ object HttpUtils {
     private const val TAG = "HttpUtils"
     private val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
 
-    fun isError(str: String): Boolean {
+    private fun isError(str: String): Boolean {
         return str == "" || str == "Internal Server Error" || str.contains("error") || str.contains("ERROR") || str.contains("Error")
+    }
+
+    fun handleReturnJson(str: String): String {
+        val res = Json.parse(str) as JsonObject
+        val code = res.getInt("code", -1)
+        val msg = res.getString("msg", "-1")
+        return if (code != -1 && msg != "-1") {
+            if (code == 200) {
+                Log.i(TAG, msg)
+                val data = res.get("data")
+                data.toString()
+            } else {
+                Log.e(TAG, "code: $code, msg: $msg")
+                "-1"
+            }
+        } else {
+            "-1"
+        }
+
     }
 
     fun httpGet(url: String, timeout: Long = 1000): String? {
@@ -64,17 +83,15 @@ object HttpUtils {
         }
 
         Log.i(TAG, "ip: $url, result:$str")
-        return if (isError(str)) {
+        val res = handleReturnJson(str)
+        return if (res == "-1") {
             Log.e(TAG, "Internal Server Error or result is null")
             false
         } else {
-            val gson = Gson()
-            val model = gson.fromJson(str, ReturnBoolDataModel::class.java)
-            if (model.code == 200) {
-                Log.i(TAG, model.msg)
-                true
+            val boolean = Json.parse(res)
+            if (boolean.isBoolean) {
+                boolean.asBoolean()
             } else {
-                Log.i(TAG, "code: ${model.code}, msg: ${model.msg}")
                 false
             }
         }
@@ -128,19 +145,14 @@ object HttpUtils {
         }
 
         Log.i(TAG, "ip: $url, result:$str")
-        return if (isError(str)) {
+        val res = handleReturnJson(str)
+        return if (res == "-1") {
             Log.e(TAG, "Internal Server Error or result is null")
             null
         } else {
             val gson = Gson()
-            val model = gson.fromJson(str, ReturnBaseClipboardDataModel::class.java)
-            if (model.code == 200) {
-                Log.i(TAG, model.msg)
-                model.data
-            } else {
-                Log.i(TAG, "code: ${model.code}, msg: ${model.msg}")
-                null
-            }
+            val clipboard = gson.fromJson(res, Clipboard::class.java)
+            clipboard
         }
     }
 }

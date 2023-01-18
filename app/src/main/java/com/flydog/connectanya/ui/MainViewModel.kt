@@ -43,7 +43,7 @@ class MainViewModel(
         currentClipboardData.value = item
     }
 
-    suspend fun login(ip: String, username: String): LoginResult<ReturnBoolDataModel> {
+    suspend fun login(ip: String, username: String): LoginResult<Boolean> {
         userDataUiModel.value?.deviceId?.let {
             return loginRepository.makeRegisterUserRequest(ip, username, it)
         }

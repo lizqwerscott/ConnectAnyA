@@ -18,7 +18,7 @@ sealed class LoginResult<out R> {
 
 class LoginRepository {
 
-    suspend fun makeRegisterUserRequest(ip: String, username: String, deviceId: String): LoginResult<ReturnBoolDataModel> {
+    suspend fun makeRegisterUserRequest(ip: String, username: String, deviceId: String): LoginResult<Boolean> {
         return withContext(Dispatchers.IO) {
             val url = "http://$ip/user/adduser"
 
@@ -34,12 +34,17 @@ class LoginRepository {
                 ""
             }
             Log.i(TAG, "ip: $url, result:$str")
-            if (str == "" || str == "Internal Server Error") {
+            val res = HttpUtils.handleReturnJson(str)
+            if (res == "-1") {
                 Log.e(TAG, "Internal Server Error or result is null")
                 LoginResult.Error(Exception("Internal Server Error or result is null"))
             } else {
-                val gson = Gson()
-                LoginResult.Success(gson.fromJson(str, ReturnBoolDataModel::class.java))
+                val boolean = Json.parse(res)
+                if (boolean.isBoolean) {
+                    LoginResult.Success(boolean.asBoolean())
+                } else {
+                    LoginResult.Success(false)
+                }
             }
         }
     }

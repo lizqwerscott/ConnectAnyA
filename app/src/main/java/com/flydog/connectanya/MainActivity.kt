@@ -199,15 +199,15 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     lifecycleScope.launch {
                         when (val res = viewModel.login(getHostAddress(), name)) {
-                            is LoginResult.Success<ReturnBoolDataModel> -> {
-                                if (res.data.code == 200) {
+                            is LoginResult.Success<Boolean> -> {
+                                if (res.data) {
                                     viewModel.updateUserName(name)
                                     runOnUiThread {
                                         Toast.makeText(this@MainActivity, "提交完成", Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
                                     runOnUiThread {
-                                        Toast.makeText(this@MainActivity, res.data.msg, Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this@MainActivity, "网络错误", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
