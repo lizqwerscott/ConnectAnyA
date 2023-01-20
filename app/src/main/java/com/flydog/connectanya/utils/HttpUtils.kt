@@ -19,26 +19,36 @@ object HttpUtils {
     private val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
 
     private fun isError(str: String): Boolean {
-        return str == "" || str == "Internal Server Error" || str.contains("error") || str.contains("ERROR") || str.contains("Error")
+        var isJsonStr = true
+        try {
+            Json.parse(str)
+        } catch (e: Exception) {
+            isJsonStr = false
+        }
+        return str == "" || !isJsonStr || str == "Internal Server Error" || str.contains("error") || str.contains("ERROR") || str.contains("Error")
     }
 
     fun handleReturnJson(str: String): String {
+        var result = "-1"
+
+        if (isError(str)) {
+            return result
+        }
+
         val res = Json.parse(str) as JsonObject
         val code = res.getInt("code", -1)
         val msg = res.getString("msg", "-1")
-        return if (code != -1 && msg != "-1") {
+
+        if (code != -1 && msg != "-1") {
             if (code == 200) {
                 Log.i(TAG, msg)
                 val data = res.get("data")
-                data.toString()
+                result = data.toString()
             } else {
                 Log.e(TAG, "code: $code, msg: $msg")
-                "-1"
             }
-        } else {
-            "-1"
         }
-
+        return result
     }
 
     fun httpGet(url: String, timeout: Long = 1000): String? {
