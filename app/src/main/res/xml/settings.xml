@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory android:title="设置1">
         <EditTextPreference
             android:key="host"
             android:title="Host"
-            android:summary="同步服务器的地址和端口,例如192.168.3.127:8686"
+            app:useSimpleSummaryProvider="true"
             android:defaultValue="192.168.3.127:8686" />
     </PreferenceCategory>
     <PreferenceCategory android:title="设置2">

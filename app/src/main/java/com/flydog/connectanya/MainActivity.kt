@@ -30,13 +30,11 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.flydog.connectanya.databinding.ActivityMainBinding
-import com.flydog.connectanya.datalayer.model.ReturnBoolDataModel
 import com.flydog.connectanya.datalayer.repository.LoginResult
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.ui.setting.SettingActivity
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
 
 
@@ -71,12 +69,12 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             viewModel.userDataUiModel.value?.let { connectService?.updateUserData(it) }
-            Log.w("connectService", "bind service")
+            Log.w(TAG, "bind service")
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
             isBind = false
-            Log.w("connectService", "unBind service")
+            Log.w(TAG, "unBind service")
         }
     }
 
@@ -137,21 +135,21 @@ class MainActivity : AppCompatActivity() {
         }
 
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
-        with(sharePreferenceManager.edit()) {
-            putString("host", "192.168.3.113:8686")
-            apply()
+        val a = sharePreferenceManager.getString("host", "-1")
+        if (a == "-1") {
+            with(sharePreferenceManager.edit()) {
+                putString("host", "10.0.96.5:8686")
+                apply()
+            }
         }
 
-        val a = sharePreferenceManager.getString("host", "-1")
-        Toast.makeText(this, a, Toast.LENGTH_SHORT).show()
+        val b = sharePreferenceManager.getString("host", "-1")
+
+        Toast.makeText(this, b, Toast.LENGTH_SHORT).show()
 
         startForegroundService(Intent(this, ConnectService::class.java))
         //Bind connectService
         bindService(Intent(this, ConnectService::class.java), conn, Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -180,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
         val address = sharePreferenceManager.getString("host", "-1")
         return if (address == "-1" || address == null) {
-            "192.168.3.113:8686"
+            "101.42.233.83:8686"
         } else {
             address
         }
