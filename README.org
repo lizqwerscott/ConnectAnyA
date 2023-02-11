@@ -8,3 +8,6 @@
 #+BEGIN_SRC bash
   adb shell pm grant com.flydog.connectanya android.permission.READ_LOGS
 #+END_SRC
+*** 警告
+***** 已知BUG
+只支持魅族系统
