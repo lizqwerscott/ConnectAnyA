@@ -6,4 +6,10 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_start_float"
+        android:orderInCategory="100"
+        android:title="启动悬浮窗"
+        app:showAsAction="never" />
 </menu>

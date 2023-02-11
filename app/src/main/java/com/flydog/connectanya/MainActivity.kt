@@ -32,16 +32,21 @@ import androidx.preference.PreferenceManager
 import com.flydog.connectanya.databinding.ActivityMainBinding
 import com.flydog.connectanya.datalayer.repository.LoginResult
 import com.flydog.connectanya.services.ConnectService
+import com.flydog.connectanya.services.FloatWindowViewModel
+import com.flydog.connectanya.services.FloatingWindowService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.ui.setting.SettingActivity
+import com.flydog.connectanya.utils.PermissionUtil
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+
+    private var isReceptionShow = false
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -166,6 +171,14 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.action_settings -> {
             startActivity(Intent(this, SettingActivity::class.java))
+            true
+        }
+        R.id.action_start_float -> {
+            startService(Intent(this, FloatingWindowService::class.java))
+            PermissionUtil.checkSuspendedWindowPermission(this) {
+                isReceptionShow = !isReceptionShow
+                FloatWindowViewModel.isShowSuspendWindow.postValue(isReceptionShow)
+            }
             true
         }
 

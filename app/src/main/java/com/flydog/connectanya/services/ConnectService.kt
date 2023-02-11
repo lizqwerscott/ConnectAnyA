@@ -6,11 +6,10 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.nfc.Tag
 import android.os.Binder
-import android.os.Handler
 import android.os.IBinder
 import android.util.Log
+import android.view.View
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
@@ -20,7 +19,6 @@ import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
 import com.flydog.connectanya.utils.HttpUtils
 import kotlinx.coroutines.*
-import java.sql.Time
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -65,6 +63,8 @@ class ConnectService : Service() {
         notificationClipChannel.lightColor = Color.BLUE
         notificationClipChannel.enableLights(true)
         notificationManager.createNotificationChannel(notificationClipChannel)
+
+        FloatWindowViewModel.onWindowClickListener.postValue(OnFloatWindowClickListener())
 
         val notification = createForegroundNotification()
         startForeground(2, notification)
@@ -227,6 +227,25 @@ class ConnectService : Service() {
 
     interface OnClipboardUpdateListener {
         fun onClipboardUpdate(data: String)
+    }
+
+    inner class OnFloatWindowClickListener : View.OnClickListener {
+        override fun onClick(p0: View?) {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = clipboard.primaryClip
+            if (clip != null && clip.itemCount > 0) {
+                val clipboardData = clip.getItemAt(0).coerceToText(this@ConnectService).toString()
+                job.launch(Dispatchers.Default) {
+                    // 发送新复制的信息给服务器
+                    withContext(Dispatchers.IO) {
+                        HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
+                    }
+                }
+                Log.i(FloatingWindowService.TAG, "getClipboardData: $clipboardData")
+            } else {
+                Log.i(FloatingWindowService.TAG, "Can't get clipboard data")
+            }
+        }
     }
 
     companion object {
