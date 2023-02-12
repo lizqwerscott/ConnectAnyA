@@ -14,10 +14,6 @@ object FloatWindowViewModel : ViewModel() {
     //悬浮窗口显示 隐藏
     var isVisible = MutableLiveData<Boolean>()
 
-    var deviceChange = MutableLiveData<String>()
-
-    var hostChange = MutableLiveData<String>()
-
-    var onWindowClickListener = MutableLiveData<View.OnClickListener>()
+    var onWindowClickListener = MutableLiveData<View.OnClickListener?>()
 
 }

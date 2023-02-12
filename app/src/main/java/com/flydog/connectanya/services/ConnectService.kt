@@ -147,7 +147,7 @@ class ConnectService : Service() {
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
         val address = sharePreferenceManager.getString("host", "-1")
         return if (address == "-1" || address == null) {
-            "192.168.3.113:8686"
+            "101.42.233.83:8686"
         } else {
             address
         }
@@ -231,19 +231,29 @@ class ConnectService : Service() {
 
     inner class OnFloatWindowClickListener : View.OnClickListener {
         override fun onClick(p0: View?) {
+            Log.i(TAG, "click")
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = clipboard.primaryClip
             if (clip != null && clip.itemCount > 0) {
                 val clipboardData = clip.getItemAt(0).coerceToText(this@ConnectService).toString()
-                job.launch(Dispatchers.Default) {
-                    // 发送新复制的信息给服务器
-                    withContext(Dispatchers.IO) {
-                        HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
+                if (clipboardData != "") {
+                    lastClipboardData = clipboardTextData
+                    clipboardTextData = clipboardData
+
+
+                    // 同步UI
+                    onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
+
+                    job.launch(Dispatchers.Default) {
+                        // 发送新复制的信息给服务器
+                        withContext(Dispatchers.IO) {
+                            HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
+                        }
                     }
+                    Log.i(TAG, "getClipboardData: $clipboardData, $clipboardTextData")
                 }
-                Log.i(FloatingWindowService.TAG, "getClipboardData: $clipboardData")
             } else {
-                Log.i(FloatingWindowService.TAG, "Can't get clipboard data")
+                Log.i(TAG, "Can't get clipboard data")
             }
         }
     }

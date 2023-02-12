@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity() {
         val a = sharePreferenceManager.getString("host", "-1")
         if (a == "-1") {
             with(sharePreferenceManager.edit()) {
-                putString("host", "10.0.96.5:8686")
+                putString("host", "101.42.233.83:8686")
                 apply()
             }
         }
