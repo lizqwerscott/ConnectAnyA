@@ -6,9 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.nfc.Tag
 import android.os.Binder
-import android.os.Handler
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -20,7 +18,6 @@ import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
 import com.flydog.connectanya.utils.HttpUtils
 import kotlinx.coroutines.*
-import java.sql.Time
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -169,7 +166,7 @@ class ConnectService : Service() {
         private val id = 1
         override fun run() {
             // 获取本地剪切板
-            val tempClipboard = ClipboardUtil.getClipboardText()
+            val tempClipboard = ClipboardUtil.getClipboardTextFront(this@ConnectService)
             if (tempClipboard != "" && tempClipboard != clipboardTextData) {
                 lastClipboardData = clipboardTextData
                 clipboardTextData = tempClipboard
