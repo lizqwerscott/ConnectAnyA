@@ -16,6 +16,7 @@ import com.flydog.connectanya.MainActivity
 import com.flydog.connectanya.R
 import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
+import com.flydog.connectanya.utils.HotspotUtil
 import com.flydog.connectanya.utils.HttpUtils
 import kotlinx.coroutines.*
 import java.util.*
@@ -200,20 +201,35 @@ class ConnectService : Service() {
                     withContext(Dispatchers.IO) {
 //                    HttpUtils.updateMessage(getHostAddress(), userData.deviceId)
                         val clipboard = HttpUtils.updateBaseMessage(getHostAddress(), userData.deviceId)
-                        if (clipboard != null && clipboard.type == "text") {
-                            lastClipboardData = clipboardTextData
-                            clipboardTextData = clipboard.data
-                            updateClipboard(clipboardTextData)
-                            onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
+                        if (clipboard != null) {
+                            when (clipboard.type) {
+                                "text" -> {
+                                    lastClipboardData = clipboardTextData
+                                    clipboardTextData = clipboard.data
+                                    updateClipboard(clipboardTextData)
+                                    onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
 
-                            if (returnClipboardDataTimer != null) {
-                                returnClipboardDataTimer?.cancel()
-                            }
-                            returnClipboardDataTimer = Timer()
-                            returnClipboardDataTimer?.schedule(6 * 1000) {
-                                clipboardTextData = lastClipboardData
-                                updateClipboard(clipboardTextData)
-                                returnClipboardDataTimer = null
+                                    if (returnClipboardDataTimer != null) {
+                                        returnClipboardDataTimer?.cancel()
+                                    }
+                                    returnClipboardDataTimer = Timer()
+                                    returnClipboardDataTimer?.schedule(6 * 1000) {
+                                        clipboardTextData = lastClipboardData
+                                        updateClipboard(clipboardTextData)
+                                        returnClipboardDataTimer = null
+                                    }
+                                }
+                                "manager" -> {
+                                    Log.i(TAG, "manager: ${clipboard.data}, ${clipboard.date}")
+                                    if (clipboard.date == "T") {
+                                        HotspotUtil.startHotspot(this@ConnectService)
+                                    } else {
+                                        HotspotUtil.stopHotspot(this@ConnectService)
+                                    }
+                                }
+                                else -> {
+
+                                }
                             }
                         }
                     }

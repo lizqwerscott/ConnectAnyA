@@ -7,9 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
@@ -109,6 +111,8 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
+        settingPermission(this)
+
         viewModel.initialSetupEvent.observe(this) { initialSetupEvent ->
 
             if (initialSetupEvent.deviceId == "") {
@@ -168,7 +172,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingActivity::class.java))
             true
         }
-
         else -> {
             super.onOptionsItemSelected(item)
         }
@@ -226,6 +229,14 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun settingPermission(context: Context) {
+        if (!Settings.System.canWrite(context)) {
+            val packageName = "com.flydog.connectanya"
+            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:$packageName"))
+            startActivityForResult(intent, 100)
+        }
     }
 
     companion object {

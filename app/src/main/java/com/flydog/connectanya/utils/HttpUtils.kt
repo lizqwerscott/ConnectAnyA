@@ -3,14 +3,16 @@ package com.flydog.connectanya.utils
 import android.util.Log
 import com.eclipsesource.json.Json
 import com.eclipsesource.json.JsonObject
-import com.flydog.connectanya.datalayer.model.*
+import com.flydog.connectanya.datalayer.model.Clipboard
+import com.flydog.connectanya.datalayer.model.Device
+import com.flydog.connectanya.datalayer.model.ReturnClipboardData
+import com.flydog.connectanya.datalayer.model.ReturnClipboardDataModel
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString.Companion.encodeUtf8
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 object HttpUtils {
@@ -161,8 +163,7 @@ object HttpUtils {
             null
         } else {
             val gson = Gson()
-            val clipboard = gson.fromJson(res, Clipboard::class.java)
-            clipboard
+            gson.fromJson(res, Clipboard::class.java)
         }
     }
 }
