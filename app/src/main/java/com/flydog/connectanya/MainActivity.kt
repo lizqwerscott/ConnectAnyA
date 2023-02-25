@@ -35,7 +35,7 @@ import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.ui.setting.SettingActivity
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity() {
         val a = sharePreferenceManager.getString("host", "-1")
         if (a == "-1") {
             with(sharePreferenceManager.edit()) {
-                putString("host", "10.0.96.5:8686")
+                putString("host", "10.0.96.5")
                 apply()
             }
         }
@@ -178,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
         val address = sharePreferenceManager.getString("host", "-1")
         return if (address == "-1" || address == null) {
-            "101.42.233.83:8686"
+            "101.42.233.83"
         } else {
             address
         }

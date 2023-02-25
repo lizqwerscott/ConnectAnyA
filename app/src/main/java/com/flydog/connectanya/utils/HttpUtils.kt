@@ -3,14 +3,16 @@ package com.flydog.connectanya.utils
 import android.util.Log
 import com.eclipsesource.json.Json
 import com.eclipsesource.json.JsonObject
-import com.flydog.connectanya.datalayer.model.*
+import com.flydog.connectanya.datalayer.model.Clipboard
+import com.flydog.connectanya.datalayer.model.Device
+import com.flydog.connectanya.datalayer.model.ReturnClipboardData
+import com.flydog.connectanya.datalayer.model.ReturnClipboardDataModel
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString.Companion.encodeUtf8
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 object HttpUtils {
@@ -74,7 +76,7 @@ object HttpUtils {
     }
 
     suspend fun addMessage(ip: String, message: String, deviceId: String): Boolean {
-        val url = "http://$ip/message/addmessage"
+        val url = "http://$ip:8686/message/addmessage"
 
         Log.i(TAG, "message: $message, deviceId: $deviceId")
 
@@ -108,7 +110,7 @@ object HttpUtils {
     }
 
     suspend fun updateMessage(ip: String, deviceId: String): List<ReturnClipboardData>? {
-        val url = "http://$ip/message/update"
+        val url = "http://$ip:8686/message/update"
 
         val deviceObject = Device.generateFastObject(deviceId)
 
@@ -140,7 +142,7 @@ object HttpUtils {
     }
 
     suspend fun updateBaseMessage(ip: String, deviceId: String): Clipboard? {
-        val url = "http://$ip/message/updatebase"
+        val url = "http://$ip:8686/message/updatebase"
 
         val deviceObject = Device.generateFastObject(deviceId)
 

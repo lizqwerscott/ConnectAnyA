@@ -4,12 +4,9 @@ import android.util.Log
 import com.eclipsesource.json.Json
 import com.eclipsesource.json.JsonObject
 import com.flydog.connectanya.datalayer.model.Device
-import com.flydog.connectanya.datalayer.model.ReturnBoolDataModel
 import com.flydog.connectanya.utils.HttpUtils
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.lang.Exception
 
 sealed class LoginResult<out R> {
     data class Success<out T>(val data: T) : LoginResult<T>()
@@ -20,7 +17,7 @@ class LoginRepository {
 
     suspend fun makeRegisterUserRequest(ip: String, username: String, deviceId: String): LoginResult<Boolean> {
         return withContext(Dispatchers.IO) {
-            val url = "http://$ip/user/adduser"
+            val url = "http://$ip:8686/user/adduser"
 
             val deviceObject = Device.generateFastObject(deviceId)
 
