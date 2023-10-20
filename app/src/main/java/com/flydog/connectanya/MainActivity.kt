@@ -1,7 +1,6 @@
 package com.flydog.connectanya
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -11,18 +10,13 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -30,12 +24,10 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.flydog.connectanya.databinding.ActivityMainBinding
-import com.flydog.connectanya.datalayer.repository.LoginResult
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.ui.setting.SettingActivity
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.launch
 
 
 class MainActivity : AppCompatActivity() {
@@ -68,7 +60,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-            viewModel.userDataUiModel.value?.let { connectService?.updateUserData(it) }
             Log.w(TAG, "bind service")
         }
 
@@ -89,7 +80,6 @@ class MainActivity : AppCompatActivity() {
         binding.appBarMain.fab.setOnClickListener { view ->
 //            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                .setAction("Action", null).show()
-            this.showLoginDialog()
         }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -108,44 +98,6 @@ class MainActivity : AppCompatActivity() {
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
-
-        viewModel.initialSetupEvent.observe(this) { initialSetupEvent ->
-
-            if (initialSetupEvent.deviceId == "") {
-                viewModel.updateDeviceId()
-            }
-
-            if (initialSetupEvent.username == "") {
-                this.showLoginDialog()
-            }
-
-            viewModel.userDataUiModel.observe(this) { userDataUiModel ->
-
-                connectService?.updateUserData(userDataUiModel)
-
-                if (binding.navView.headerCount > 0) {
-                    val header = binding.navView.getHeaderView(0)
-
-                    val showUserName = header.findViewById<TextView>(R.id.sideUserName)
-                    showUserName.text = userDataUiModel.username
-                    val showDeviceId = header.findViewById<TextView>(R.id.sideDeviceName)
-                    showDeviceId.text = userDataUiModel.deviceId
-                }
-            }
-        }
-
-        val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
-        val a = sharePreferenceManager.getString("host", "-1")
-        if (a == "-1") {
-            with(sharePreferenceManager.edit()) {
-                putString("host", "10.0.96.5")
-                apply()
-            }
-        }
-
-        val b = sharePreferenceManager.getString("host", "-1")
-
-        Toast.makeText(this, b, Toast.LENGTH_SHORT).show()
 
         startForegroundService(Intent(this, ConnectService::class.java))
         //Bind connectService
@@ -182,44 +134,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             address
         }
-    }
-
-    private fun showLoginDialog() {
-        val view = LayoutInflater.from(this).inflate(R.layout.activity_sign, null)
-
-        AlertDialog.Builder(this).setTitle("登陆或者注册").setView(view).setPositiveButton("登陆") { _, _ ->
-                val editTextUserName = view.findViewById<EditText>(R.id.userName)
-
-                val name = editTextUserName.text.toString().trim()
-
-                if (name == "") {
-                    Toast.makeText(this, "用户名不能为空", Toast.LENGTH_SHORT).show()
-                } else {
-                    lifecycleScope.launch {
-                        when (val res = viewModel.login(getHostAddress(), name)) {
-                            is LoginResult.Success<Boolean> -> {
-                                if (res.data) {
-                                    viewModel.updateUserName(name)
-                                    runOnUiThread {
-                                        Toast.makeText(this@MainActivity, "提交完成", Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    runOnUiThread {
-                                        Toast.makeText(this@MainActivity, "网络错误", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                            else -> {
-                                runOnUiThread {
-                                    Toast.makeText(this@MainActivity, "网络连接错误，请检查网络或者检查默认服务器地址", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-                    }
-                }
-            }.setNegativeButton("取消") { dialog, _ ->
-                dialog.cancel()
-            }.create().show()
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {

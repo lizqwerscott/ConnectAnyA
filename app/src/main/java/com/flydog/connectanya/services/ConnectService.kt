@@ -5,8 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -16,29 +14,17 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
-import com.eclipsesource.json.Json
 import com.flydog.connectanya.MainActivity
 import com.flydog.connectanya.R
-import com.flydog.connectanya.datalayer.model.Clipboard
-import com.flydog.connectanya.datalayer.model.Device
-import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
 import com.flydog.connectanya.utils.HttpUtils
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.WebSocket
-import okhttp3.WebSocketListener
-import okio.ByteString
 import java.util.Timer
 import java.util.TimerTask
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.schedule
 
 class ConnectService : Service() {
@@ -50,17 +36,10 @@ class ConnectService : Service() {
     private val notificationChannelId = "connectService_id_02"
     private val notificationClipboardChannelId = "connectService_id_03"
 
-    private var userData: UserData = UserData("", "")
-
     private var lastClipboardData = ""
     private var clipboardTextData = ""
 
-    private var returnClipboardDataTimer: Timer? = null
-
     private var job = MainScope()
-
-    private var webSocket: WebSocket? = null
-    private var isConnected = false
 
     override fun onCreate() {
         super.onCreate()
@@ -112,7 +91,6 @@ class ConnectService : Service() {
         stopForeground(true)
         job.cancel()
         Log.w("Info", "ConnectService destroy")
-        webSocket?.close(404, "Software closed connection")
     }
 
     private fun createForegroundNotification(): Notification {
@@ -160,13 +138,9 @@ class ConnectService : Service() {
         return builder.build()
     }
 
-    fun updateUserData(userData: UserData) {
-        this.userData = userData
-    }
-
-    fun getHostAddress(): String {
+    fun getBarkAddress(): String {
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
-        val address = sharePreferenceManager.getString("host", "-1")
+        val address = sharePreferenceManager.getString("bark", "-1")
         return if (address == "-1" || address == null) {
             "192.168.3.113"
         } else {
@@ -174,83 +148,10 @@ class ConnectService : Service() {
         }
     }
 
-    fun updateClipboard(data: String) {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("recive text", data)
-        clipboard.setPrimaryClip(clip)
-        clipboard.setPrimaryClip(clip)
-        clipboard.setPrimaryClip(clip)
-    }
-
-    private fun createWebSocket() {
-        Log.i(TAG, "createWebSocket")
-        val mClient = OkHttpClient.Builder()
-            .readTimeout(3, TimeUnit.SECONDS)//设置读取超时时间
-            .writeTimeout(3, TimeUnit.SECONDS)//设置写的超时时间
-            .connectTimeout(3, TimeUnit.SECONDS)//设置连接超时时间
-            .build()
-
-        val url = "ws://${getHostAddress()}:8687/clipboard"
-        val request = Request.Builder().get().url(url).build()
-
-        webSocket = mClient.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                super.onOpen(webSocket, response)
-                Log.i(TAG, "onOpen")
-                isConnected = true
-                val deviceObject = Device.generateFastObject(userData.deviceId)
-                val messageObject = Json.`object`().add("type", "init").add("device", deviceObject)
-
-                webSocket.send(messageObject.toString())
-            }
-
-            override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-                super.onMessage(webSocket, bytes)
-                Log.i(TAG, "onMessage(Byte): $bytes")
-            }
-
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                super.onMessage(webSocket, text)
-                Log.i(TAG, "onMessage(text): $text")
-                val gson = Gson()
-                val clipboard = gson.fromJson(text, Clipboard::class.java)
-                if (clipboard != null && clipboard.type == "text") {
-                    lastClipboardData = clipboardTextData
-                    clipboardTextData = clipboard.data
-                    updateClipboard(clipboardTextData)
-                    onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
-
-                    if (returnClipboardDataTimer != null) {
-                        returnClipboardDataTimer?.cancel()
-                    }
-                    returnClipboardDataTimer = Timer()
-                    returnClipboardDataTimer?.schedule(6 * 1000) {
-                        clipboardTextData = lastClipboardData
-                        updateClipboard(clipboardTextData)
-                        returnClipboardDataTimer = null
-                    }
-                }
-            }
-
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                super.onFailure(webSocket, t, response)
-                isConnected = false
-                Log.i(TAG, "onFailure: ${response.toString()}, ${t.message}")
-            }
-
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                super.onClosed(webSocket, code, reason)
-                Log.i(TAG, "onClosed")
-                isConnected = false
-            }
-        })
-    }
-
     inner class MsgBinder : Binder() {
         fun getService(): ConnectService {
             return this@ConnectService
-        }
-    }
+        } }
 
     inner class ServerConnectTask : TimerTask() {
         private val id = 1
@@ -260,10 +161,6 @@ class ConnectService : Service() {
             if (tempClipboard != "" && tempClipboard != clipboardTextData) {
                 lastClipboardData = clipboardTextData
                 clipboardTextData = tempClipboard
-
-                if (returnClipboardDataTimer != null) {
-                    returnClipboardDataTimer?.cancel()
-                }
 
                 val notification = createClipboardNotification()
                 with(NotificationManagerCompat.from(this@ConnectService)) {
@@ -276,43 +173,12 @@ class ConnectService : Service() {
                 job.launch(Dispatchers.Default) {
                     // 发送新复制的信息给服务器
                     withContext(Dispatchers.IO) {
-                        HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
+                        // HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
+                        Log.w("clipbaord", "send bark address");
+                        HttpUtils.sendBarkMessage(getBarkAddress(), clipboardTextData);
                     }
                 }
             }
-
-            // 和服务器同步
-            Log.i(TAG, clipboardTextData)
-            if (webSocket != null && isConnected) {
-                Log.i(TAG, "webSocket is connected")
-            } else {
-                createWebSocket()
-            }
-//            if (userData.username != "") {
-//                job.launch(Dispatchers.Default) {
-//                    // 从服务器获取新的剪切板信息
-//                    withContext(Dispatchers.IO) {
-////                    HttpUtils.updateMessage(getHostAddress(), userData.deviceId)
-//                        val clipboard = HttpUtils.updateBaseMessage(getHostAddress(), userData.deviceId)
-//                        if (clipboard != null && clipboard.type == "text") {
-//                            lastClipboardData = clipboardTextData
-//                            clipboardTextData = clipboard.data
-//                            updateClipboard(clipboardTextData)
-//                            onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
-//
-//                            if (returnClipboardDataTimer != null) {
-//                                returnClipboardDataTimer?.cancel()
-//                            }
-//                            returnClipboardDataTimer = Timer()
-//                            returnClipboardDataTimer?.schedule(6 * 1000) {
-//                                clipboardTextData = lastClipboardData
-//                                updateClipboard(clipboardTextData)
-//                                returnClipboardDataTimer = null
-//                            }
-//                        }
-//                    }
-//                }
-//            }
         }
     }
 

@@ -3,15 +3,11 @@ package com.flydog.connectanya.utils
 import android.util.Log
 import com.eclipsesource.json.Json
 import com.eclipsesource.json.JsonObject
-import com.flydog.connectanya.datalayer.model.Clipboard
-import com.flydog.connectanya.datalayer.model.Device
-import com.flydog.connectanya.datalayer.model.ReturnClipboardData
-import com.flydog.connectanya.datalayer.model.ReturnClipboardDataModel
-import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.internal.format
 import okio.ByteString.Companion.encodeUtf8
 import java.util.concurrent.TimeUnit
 
@@ -75,96 +71,9 @@ object HttpUtils {
         return response.body?.string()
     }
 
-    suspend fun addMessage(ip: String, message: String, deviceId: String): Boolean {
-        val url = "http://$ip:8686/message/addmessage"
-
-        Log.i(TAG, "message: $message, deviceId: $deviceId")
-
-        val deviceObject = Device.generateFastObject(deviceId)
-
-        val messageObject = Json.`object`().add("data", message).add("type", "text")
-
-        val data: JsonObject = Json.`object`().add("device", deviceObject).add("message", messageObject)
-
-        // send
-        val str = try {
-            httpPost(url, data.toString(), 30000).toString()
-        } catch (e: Exception) {
-            Log.e(TAG, "$e")
-            ""
-        }
-
-        Log.i(TAG, "ip: $url, result:$str")
-        val res = handleReturnJson(str)
-        return if (res == "-1") {
-            Log.e(TAG, "Internal Server Error or result is null")
-            false
-        } else {
-            val boolean = Json.parse(res)
-            if (boolean.isBoolean) {
-                boolean.asBoolean()
-            } else {
-                false
-            }
-        }
-    }
-
-    suspend fun updateMessage(ip: String, deviceId: String): List<ReturnClipboardData>? {
-        val url = "http://$ip:8686/message/update"
-
-        val deviceObject = Device.generateFastObject(deviceId)
-
-        val data: JsonObject = Json.`object`().add("device", deviceObject)
-
-        // send
-        val str = try {
-            httpPost(url, data.toString(), 30000).toString()
-        } catch (e: Exception) {
-            Log.e(TAG, "$e")
-            ""
-        }
-
-        Log.i(TAG, "ip: $url, result:$str")
-        return if (isError(str)) {
-            Log.e(TAG, "Internal Server Error or result is null")
-            null
-        } else {
-            val gson = Gson()
-            val model = gson.fromJson(str, ReturnClipboardDataModel::class.java)
-            if (model.code == 200) {
-                Log.i(TAG, model.msg)
-                model.data
-            } else {
-                Log.i(TAG, "code: ${model.code}, msg: ${model.msg}")
-                null
-            }
-        }
-    }
-
-    suspend fun updateBaseMessage(ip: String, deviceId: String): Clipboard? {
-        val url = "http://$ip:8686/message/updatebase"
-
-        val deviceObject = Device.generateFastObject(deviceId)
-
-        val data: JsonObject = Json.`object`().add("device", deviceObject)
-
-        // send
-        val str = try {
-            httpPost(url, data.toString(), 30000).toString()
-        } catch (e: Exception) {
-            Log.e(TAG, "$e")
-            ""
-        }
-
-        Log.i(TAG, "ip: $url, result:$str")
-        val res = handleReturnJson(str)
-        return if (res == "-1") {
-            Log.e(TAG, "Internal Server Error or result is null")
-            null
-        } else {
-            val gson = Gson()
-            val clipboard = gson.fromJson(res, Clipboard::class.java)
-            clipboard
-        }
+    fun sendBarkMessage(barkKey: String, clipboardMessage: String) : Boolean {
+        val res = httpGet(format("https://api.day.app/${barkKey}/clipboard/${clipboardMessage}"), 1000);
+        Log.w("bark", "Res: $res")
+        return true
     }
 }

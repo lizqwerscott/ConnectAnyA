@@ -1,13 +1,6 @@
 * ConnectAnyA
 *** 介绍
-本软件是ConnectAny安卓版本软件.
+本软件是ConnectAny(Root)安卓版本软件.
 *** 安装方法
 ***** 下载APP
 自己编译,或者下载Release发布的
-***** 给予权限
-#+BEGIN_SRC bash
-  adb shell pm grant com.flydog.connectanya android.permission.READ_LOGS
-#+END_SRC
-*** 警告
-***** 已知BUG
-只支持魅族系统
