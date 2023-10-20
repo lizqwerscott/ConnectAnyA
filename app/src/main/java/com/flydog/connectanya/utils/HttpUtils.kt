@@ -2,7 +2,6 @@ package com.flydog.connectanya.utils
 
 import android.util.Log
 import com.eclipsesource.json.Json
-import com.eclipsesource.json.JsonObject
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -24,29 +23,6 @@ object HttpUtils {
             isJsonStr = false
         }
         return str == "" || !isJsonStr || str == "Internal Server Error" || str.contains("error") || str.contains("ERROR") || str.contains("Error")
-    }
-
-    fun handleReturnJson(str: String): String {
-        var result = "-1"
-
-        if (isError(str)) {
-            return result
-        }
-
-        val res = Json.parse(str) as JsonObject
-        val code = res.getInt("code", -1)
-        val msg = res.getString("msg", "-1")
-
-        if (code != -1 && msg != "-1") {
-            if (code == 200) {
-                Log.i(TAG, msg)
-                val data = res.get("data")
-                result = data.toString()
-            } else {
-                Log.e(TAG, "code: $code, msg: $msg")
-            }
-        }
-        return result
     }
 
     fun httpGet(url: String, timeout: Long = 1000): String? {
@@ -72,7 +48,7 @@ object HttpUtils {
     }
 
     fun sendBarkMessage(barkKey: String, clipboardMessage: String) : Boolean {
-        val res = httpGet(format("https://api.day.app/${barkKey}/clipboard/${clipboardMessage}"), 1000);
+        val res = httpGet(format("https://api.day.app/${barkKey}/clipboard/${clipboardMessage}"), 1000)
         Log.w("bark", "Res: $res")
         return true
     }

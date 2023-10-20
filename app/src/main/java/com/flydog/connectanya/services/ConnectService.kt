@@ -174,8 +174,8 @@ class ConnectService : Service() {
                     // 发送新复制的信息给服务器
                     withContext(Dispatchers.IO) {
                         // HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
-                        Log.w("clipbaord", "send bark address");
-                        HttpUtils.sendBarkMessage(getBarkAddress(), clipboardTextData);
+                        Log.w("clipbaord", "send bark address")
+                        HttpUtils.sendBarkMessage(getBarkAddress(), clipboardTextData)
                     }
                 }
             }

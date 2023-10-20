@@ -22,7 +22,6 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import androidx.preference.PreferenceManager
 import com.flydog.connectanya.databinding.ActivityMainBinding
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
@@ -36,12 +35,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val viewModel: MainViewModel by viewModels()
-
-//    private var viewModel: MainViewModel = ViewModelProvider(
-//        this, MainViewModelFactory(
-//            UserDataRepository(dataStore)
-//        )
-//    ).get(MainViewModel::class.java)
 
     private var connectService: ConnectService? = null
     private var isBind = false
@@ -123,16 +116,6 @@ class MainActivity : AppCompatActivity() {
 
         else -> {
             super.onOptionsItemSelected(item)
-        }
-    }
-
-    private fun getHostAddress(): String {
-        val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
-        val address = sharePreferenceManager.getString("host", "-1")
-        return if (address == "-1" || address == null) {
-            "101.42.233.83"
-        } else {
-            address
         }
     }
 
