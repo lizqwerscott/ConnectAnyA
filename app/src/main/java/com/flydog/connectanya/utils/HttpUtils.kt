@@ -1,7 +1,6 @@
 package com.flydog.connectanya.utils
 
 import android.util.Log
-import com.eclipsesource.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -14,16 +13,6 @@ object HttpUtils {
 
     private const val TAG = "HttpUtils"
     private val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
-
-    private fun isError(str: String): Boolean {
-        var isJsonStr = true
-        try {
-            Json.parse(str)
-        } catch (e: Exception) {
-            isJsonStr = false
-        }
-        return str == "" || !isJsonStr || str == "Internal Server Error" || str.contains("error") || str.contains("ERROR") || str.contains("Error")
-    }
 
     fun httpGet(url: String, timeout: Long = 1000): String? {
         val client = OkHttpClient.Builder()
