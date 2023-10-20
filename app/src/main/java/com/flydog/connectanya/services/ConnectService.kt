@@ -1,6 +1,10 @@
 package com.flydog.connectanya.services
 
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -21,10 +25,19 @@ import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
 import com.flydog.connectanya.utils.HttpUtils
 import com.google.gson.Gson
-import kotlinx.coroutines.*
-import okhttp3.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
 import okio.ByteString
-import java.util.*
+import java.util.Timer
+import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.schedule
 
@@ -243,7 +256,7 @@ class ConnectService : Service() {
         private val id = 1
         override fun run() {
             // 获取本地剪切板
-            val tempClipboard = ClipboardUtil.getClipboardText()
+            val tempClipboard = ClipboardUtil.getClipboardTextFront(this@ConnectService)
             if (tempClipboard != "" && tempClipboard != clipboardTextData) {
                 lastClipboardData = clipboardTextData
                 clipboardTextData = tempClipboard
