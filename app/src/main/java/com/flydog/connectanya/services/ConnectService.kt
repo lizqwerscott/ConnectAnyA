@@ -215,7 +215,7 @@ class ConnectService : Service() {
                 Log.i(TAG, "onMessage(text): $text")
                 val gson = Gson()
                 val clipboard = gson.fromJson(text, Clipboard::class.java)
-                if (clipboard != null && clipboard.type == "text") {
+                if (clipboard != null && clipboard.type == "Text") {
                     lastClipboardData = clipboardTextData
                     clipboardTextData = clipboard.data
                     updateClipboard(clipboardTextData)
