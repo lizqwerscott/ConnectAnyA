@@ -21,6 +21,7 @@ import com.flydog.connectanya.MainActivity
 import com.flydog.connectanya.R
 import com.flydog.connectanya.datalayer.model.Clipboard
 import com.flydog.connectanya.datalayer.model.Device
+import com.flydog.connectanya.datalayer.model.InputDevice
 import com.flydog.connectanya.datalayer.repository.UserData
 import com.flydog.connectanya.utils.ClipboardUtil
 import com.flydog.connectanya.utils.HttpUtils
@@ -168,7 +169,7 @@ class ConnectService : Service() {
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
         val address = sharePreferenceManager.getString("host", "-1")
         return if (address == "-1" || address == null) {
-            "192.168.3.113"
+            "127.0.0.1:22010"
         } else {
             address
         }
@@ -190,7 +191,7 @@ class ConnectService : Service() {
             .connectTimeout(3, TimeUnit.SECONDS)//设置连接超时时间
             .build()
 
-        val url = "ws://${getHostAddress()}:8687/clipboard"
+        val url = "ws://${getHostAddress()}/ws"
         val request = Request.Builder().get().url(url).build()
 
         webSocket = mClient.newWebSocket(request, object : WebSocketListener() {
@@ -198,7 +199,7 @@ class ConnectService : Service() {
                 super.onOpen(webSocket, response)
                 Log.i(TAG, "onOpen")
                 isConnected = true
-                val deviceObject = Device.generateFastObject(userData.deviceId)
+                val deviceObject = InputDevice.generateFastObject()
                 val messageObject = Json.`object`().add("type", "init").add("device", deviceObject)
 
                 webSocket.send(messageObject.toString())
@@ -276,7 +277,7 @@ class ConnectService : Service() {
                 job.launch(Dispatchers.Default) {
                     // 发送新复制的信息给服务器
                     withContext(Dispatchers.IO) {
-                        HttpUtils.addMessage(getHostAddress(), clipboardTextData, userData.deviceId)
+                        HttpUtils.addMessage(getHostAddress(), clipboardTextData)
                     }
                 }
             }
@@ -288,31 +289,6 @@ class ConnectService : Service() {
             } else {
                 createWebSocket()
             }
-//            if (userData.username != "") {
-//                job.launch(Dispatchers.Default) {
-//                    // 从服务器获取新的剪切板信息
-//                    withContext(Dispatchers.IO) {
-////                    HttpUtils.updateMessage(getHostAddress(), userData.deviceId)
-//                        val clipboard = HttpUtils.updateBaseMessage(getHostAddress(), userData.deviceId)
-//                        if (clipboard != null && clipboard.type == "text") {
-//                            lastClipboardData = clipboardTextData
-//                            clipboardTextData = clipboard.data
-//                            updateClipboard(clipboardTextData)
-//                            onClipboardDataUpdateListener?.onClipboardUpdate(clipboardTextData)
-//
-//                            if (returnClipboardDataTimer != null) {
-//                                returnClipboardDataTimer?.cancel()
-//                            }
-//                            returnClipboardDataTimer = Timer()
-//                            returnClipboardDataTimer?.schedule(6 * 1000) {
-//                                clipboardTextData = lastClipboardData
-//                                updateClipboard(clipboardTextData)
-//                                returnClipboardDataTimer = null
-//                            }
-//                        }
-//                    }
-//                }
-//            }
         }
     }
 

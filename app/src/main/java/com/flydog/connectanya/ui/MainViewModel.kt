@@ -44,10 +44,7 @@ class MainViewModel(
     }
 
     suspend fun login(ip: String, username: String): LoginResult<Boolean> {
-        userDataUiModel.value?.deviceId?.let {
-            return loginRepository.makeRegisterUserRequest(ip, username, it)
-        }
-        return LoginResult.Error(Exception("device not found"))
+        return loginRepository.makeRegisterUserRequest(ip, username)
     }
 }
 

@@ -12,6 +12,7 @@
     <string name="menu_slideshow">Slideshow</string>
 
     <string name="sign_username">请输入用户名，必须和其他设备相同</string>
+    <string name="input_host">请输入服务器地址</string>
 
     <string name="not_clipboard_history">没有剪切板历史记录</string>
     <string name="title_activity_login">LoginActivity</string>

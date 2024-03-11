@@ -4,6 +4,7 @@ import android.util.Log
 import com.eclipsesource.json.Json
 import com.eclipsesource.json.JsonObject
 import com.flydog.connectanya.datalayer.model.Device
+import com.flydog.connectanya.datalayer.model.InputDevice
 import com.flydog.connectanya.utils.HttpUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,11 +16,12 @@ sealed class LoginResult<out R> {
 
 class LoginRepository {
 
-    suspend fun makeRegisterUserRequest(ip: String, username: String, deviceId: String): LoginResult<Boolean> {
+    suspend fun makeRegisterUserRequest(host: String, username: String): LoginResult<Boolean> {
         return withContext(Dispatchers.IO) {
-            val url = "http://$ip:8686/user/adduser"
+            val url = "http://$host/user/adduser"
 
-            val deviceObject = Device.generateFastObject(deviceId)
+            val deviceObject = InputDevice.generateFastObject()
+            deviceObject.add("notification", "")
 
             val data: JsonObject = Json.`object`().add("device", deviceObject).add("name", username)
 

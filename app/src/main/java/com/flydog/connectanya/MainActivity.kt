@@ -34,6 +34,7 @@ import com.flydog.connectanya.datalayer.repository.LoginResult
 import com.flydog.connectanya.services.ConnectService
 import com.flydog.connectanya.ui.MainViewModel
 import com.flydog.connectanya.ui.setting.SettingActivity
+import com.flydog.connectanya.utils.HttpUtils
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.launch
 
@@ -115,8 +116,14 @@ class MainActivity : AppCompatActivity() {
                 viewModel.updateDeviceId()
             }
 
+
             if (initialSetupEvent.username == "") {
-                this.showLoginDialog()
+                if (!testConnection()) {
+                    this.showServerDialog()
+                } else {
+                    Log.i("MainActivity", "Server is OK")
+                    this.showLoginDialog()
+                }
             }
 
             viewModel.userDataUiModel.observe(this) { userDataUiModel ->
@@ -138,7 +145,7 @@ class MainActivity : AppCompatActivity() {
         val a = sharePreferenceManager.getString("host", "-1")
         if (a == "-1") {
             with(sharePreferenceManager.edit()) {
-                putString("host", "10.0.96.5")
+                putString("host", "127.0.0.1:22010")
                 apply()
             }
         }
@@ -178,16 +185,51 @@ class MainActivity : AppCompatActivity() {
         val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
         val address = sharePreferenceManager.getString("host", "-1")
         return if (address == "-1" || address == null) {
-            "101.42.233.83"
+            "127.0.0.1:22010"
         } else {
             address
         }
     }
 
+    private fun testConnection(): Boolean {
+        val address = getHostAddress()
+        return try {
+            val res = HttpUtils.httpGet("http://$address", 10000)
+            res != null
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun showServerDialog() {
+        val view = LayoutInflater.from(this).inflate(R.layout.activity_host, null)
+
+        AlertDialog.Builder(this).setTitle("输入服务器链接").setView(view)
+            .setPositiveButton("设置") { _, _ ->
+                val editTextUrl = view.findViewById<EditText>(R.id.host)
+
+                val url = editTextUrl.text.toString().trim()
+
+                if (url == "") {
+                    Toast.makeText(this, "服务器地址不能为空", Toast.LENGTH_SHORT).show()
+                } else {
+                    val sharePreferenceManager = PreferenceManager.getDefaultSharedPreferences(this)
+                    with(sharePreferenceManager.edit()) {
+                        putString("host", url)
+                        apply()
+                    }
+                    this.showLoginDialog()
+                }
+            }.setNegativeButton("取消") { dialog, _ ->
+            dialog.cancel()
+        }.create().show()
+    }
+
     private fun showLoginDialog() {
         val view = LayoutInflater.from(this).inflate(R.layout.activity_sign, null)
 
-        AlertDialog.Builder(this).setTitle("登陆或者注册").setView(view).setPositiveButton("登陆") { _, _ ->
+        AlertDialog.Builder(this).setTitle("登陆或者注册").setView(view)
+            .setPositiveButton("登陆") { _, _ ->
                 val editTextUserName = view.findViewById<EditText>(R.id.userName)
 
                 val name = editTextUserName.text.toString().trim()
@@ -201,25 +243,38 @@ class MainActivity : AppCompatActivity() {
                                 if (res.data) {
                                     viewModel.updateUserName(name)
                                     runOnUiThread {
-                                        Toast.makeText(this@MainActivity, "提交完成", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "提交完成",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 } else {
                                     runOnUiThread {
-                                        Toast.makeText(this@MainActivity, "网络错误", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "网络错误",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
                             }
+
                             else -> {
                                 runOnUiThread {
-                                    Toast.makeText(this@MainActivity, "网络连接错误，请检查网络或者检查默认服务器地址", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "网络连接错误，请检查网络或者检查默认服务器地址",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         }
                     }
                 }
             }.setNegativeButton("取消") { dialog, _ ->
-                dialog.cancel()
-            }.create().show()
+            dialog.cancel()
+        }.create().show()
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
